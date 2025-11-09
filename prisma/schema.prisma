@@ -1,0 +1,76 @@
+// prisma/schema.prisma
+generator client {
+ provider = "prisma-client-js"
+}
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id            Int   @id @default(autoincrement())
+  user_name     String   @unique
+  name          String?
+  bio           String?
+  email         String   @unique
+  password      String   // ⚠️ In production, hash this!
+  profile_url   String?  // e.g., avatar URL
+  cover_url   String?  // e.g., avatar URL
+  createdAt     DateTime @default(now())
+
+  // Relations
+  contents      Content[]
+  comments      Comment[]
+  reactions     React[]
+  following     Follow[]     @relation("Follower")
+  followers     Follow[]     @relation("Followee")
+}
+
+model Content {
+  id            Int   @id @default(autoincrement())
+  type          String   // e.g., "photo", "video"
+  video_url     String?  // if type == "video"
+  photo_url     String?  // if type == "photo"
+  caption       String?
+  visibility    String?  // e.g., "public", "private"
+  user_id       Int
+  author        User     @relation(fields: [user_id], references: [id])
+  createdAt     DateTime @default(now())
+
+  // Relations
+  comments      Comment[]
+  reactions     React[]
+}
+
+model Comment {
+  id            Int   @id @default(autoincrement())
+  comment       String
+  user_id       Int
+  content_id    Int
+  author        User     @relation(fields: [user_id], references: [id])
+  content       Content  @relation(fields: [content_id], references: [id])
+  createdAt     DateTime @default(now())
+}
+
+model React {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  user        User     @relation(fields: [user_id], references: [id])
+  content_id  Int
+  content     Content? @relation(fields: [content_id], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([user_id, content_id]) // ← ADD THIS
+}
+
+model Follow {
+  id            Int   @id @default(autoincrement())
+  follower_id   Int
+  followee_id   Int
+  follower      User     @relation("Follower", fields: [follower_id], references: [id])
+  followee      User     @relation("Followee", fields: [followee_id], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@unique([follower_id, followee_id]) // prevent duplicate follows
+}
