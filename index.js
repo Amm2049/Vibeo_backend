@@ -3,7 +3,12 @@ const app = express();
 const prisma = require("./prismaClient");
 
 const cors = require("cors");
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://vibeo-frontend.onrender.com/",
+    credentials: true, // if using cookies or auth headers
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
