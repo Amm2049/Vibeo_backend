@@ -6,7 +6,7 @@ const cors = require("cors");
 app.use(
   cors(
       {
-    origin: "https://vibeo-frontend-responsive.onrender.com/",
+    origin: "https://vibeo-frontend-responsive.onrender.com",
     credentials: true, // if using cookies or auth headers
   }
   )
