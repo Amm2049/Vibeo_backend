@@ -120,6 +120,57 @@ router.get("/users/profile", auth, async (req, res) => {
     bio: data.bio,
     avatar: data.profile_url || null,
     cover: data.cover_url,
+    contentsInfo: data.contents.reverse(),
+    stats: {
+      contents: data.contents.length,
+      images: data.contents
+        .filter((p) => p?.photo_url)
+        .map((p) => p.photo_url)
+        .reverse(),
+      followers: followers.length,
+      following: followings.length,
+    },
+  };
+
+  res.json(formattedUser);
+});
+
+// Fetch other user's profile page
+router.get("/users/profile/:id", auth, async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+
+  const data = await prisma.user.findFirst({
+    where: { id: Number(id) },
+    include: { contents: true },
+  });
+
+  // // who follows him
+  const followers = await prisma.follow.findMany({
+    where: { followee_id: Number(id) }, // ← you are the followee
+    select: {
+      follower: true, // ← get the user who follows you
+    },
+  });
+
+  // // whom he follow
+  const followings = await prisma.follow.findMany({
+    where: { follower_id: Number(id) }, // ← you are the followee
+    select: {
+      followee: true, // ← get the user who follows you
+    },
+  });
+
+  console.log(data);
+
+  const formattedUser = {
+    id: data.id,
+    username: data.user_name,
+    fullName: data.name,
+    bio: data.bio,
+    avatar: data.profile_url || null,
+    cover: data.cover_url,
+    contentsInfo: data.contents.reverse(),
     stats: {
       contents: data.contents.length,
       images: data.contents
